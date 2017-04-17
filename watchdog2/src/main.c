@@ -28,6 +28,10 @@
 /*
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
+
+	
+
+
 #include <asf.h>
 #include <board.h>
 #include <conf_board.h>
@@ -53,12 +57,25 @@ volatile uint32_t ul_rst_counter;
 void WDT_Handler(void)
 {
 	//puts("Enter watchdog interrupt.\r");
-
+	
 	/* Clear status bit to acknowledge interrupt by dummy read. */
 	wdt_get_status(WDT);
 	/* Restart the WDT counter. */
+	int i = 0;
+	if( i == 0){
+		PIOC->PIO_CODR = PIO_PC22;
+		i = 1;
+	}
+	else if(i == 1){
+		PIOC->PIO_SODR = PIO_PC22;
+		i = 0;
+	}
 	wdt_restart(WDT);
 	//puts("The watchdog timer was restarted.\r");
+	RSTC -> RSTC_MR = (0xA5 << 24) + 1;
+	//WDT_MR_WDRPROC = 1;
+
+
 }
 
 
@@ -67,8 +84,9 @@ int main (void)
 	
 	/* Insert system clock initialization code here (sysclk_init()). */
 	sysclk_init();
-	board_init();
-
+	//board_init();
+	pio_set_output(PIOC, PIO_PC22, HIGH, false, false);
+	pio_set_output(PIOB, PIO_PB27, HIGH, false, false);
 
  	uint32_t wdt_mode, timeout_value;
  	
@@ -107,6 +125,7 @@ int main (void)
 		{
 			if(i == 99999991){
 				PIOB->PIO_CODR = PIO_PB27;
+				
 			}
 			
 		}
